@@ -1,72 +1,66 @@
 <?php
 
-namespace Tienvx\PactProviderPackage\Controllers;
+namespace Tienvx\PactProvider\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Tienvx\PactProviderPackage\Model\ProviderState;
-use Tienvx\PactProviderPackage\Model\StateValues;
-use Tienvx\PactProviderPackage\Service\StateHandlerManagerInterface;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Tienvx\PactProvider\Enum\Action;
+use Tienvx\PactProvider\Model\ProviderState;
+use Tienvx\PactProvider\Model\StateValues;
+use Tienvx\PactProvider\Service\StateHandlerManagerInterface;
 
 class StateChangeController
 {
-    private bool $body;
-
     public function __construct(
-        private StateHandlerManagerInterface $stateHandlerManager
+        private StateHandlerManagerInterface $stateHandlerManager,
+        private bool $body
     ) {
-        $this->body = app('config')->get('pactprovider.state_change.body');
     }
 
-    public function handle(Request $request): ?Response
+    public function handle(Request $request): Response|JsonResponse|null
     {
-        $values = $this->handleProviderState($this->getProviderState($request), $this->getAction($request));
+        $rules = [
+            'action' => ['required', 'string', Rule::enum(Action::class)],
+            'state' => 'required|string',
+            'params' => 'array',
+        ];
+        if ($this->body) {
+            $validation = Validator::make($request->request->all(), [
+                ...$rules,
+                'params' => 'array',
+            ]);
+        } else {
+            $validation = Validator::make($request->query->all(), $rules);
+        }
+
+        if ($validation->fails()) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => $validation->errors(),
+            ], 400);
+        }
+
+        $data = $validation->validated();
+
+        $values = $this->handleProviderState(
+            new ProviderState(
+                $data['state'],
+                $this->body ? ($data['params'] ?? []) : array_diff_key($data, array_flip(['action', 'state']))
+            ),
+            Action::from($data['action'])
+        );
 
         if ($values) {
-            return JsonResponse::fromJsonString($values);
+            return response()->json($values->values);
         }
 
-        return new Response('', Response::HTTP_NO_CONTENT);
+        return response()->noContent();
     }
 
-    private function getProviderState(Request $request): ProviderState
-    {
-        if ($this->body) {
-            $body = $request->toArray();
-            $state = $body['state'] ?? null;
-            $params = $body['params'] ?? [];
-        } else {
-            $params = $request->query->all();
-            $state = $params['state'] ?? null;
-            foreach (['state', 'action'] as $key) {
-                unset($params[$key]);
-            }
-        }
-        if (!is_string($state)) {
-            throw new BadRequestException("'state' is missing or invalid in state change request.");
-        }
-        if (!is_array($params)) {
-            throw new BadRequestException("'params' is missing or invalid in state change request.");
-        }
-
-        return new ProviderState($state, $params);
-    }
-
-    private function getAction(Request $request): string
-    {
-        if ($this->body) {
-            $action = $request->toArray()['action'] ?? null;
-        } else {
-            $action = $request->query->all()['action'] ?? null;
-        }
-        if (!is_string($action) || !in_array($action, Action::all())) {
-            throw new BadRequestException("'action' is missing or invalid in state change request.");
-        }
-
-        return $action;
-    }
-
-    private function handleProviderState(ProviderState $providerState, string $action): ?StateValues
+    private function handleProviderState(ProviderState $providerState, Action $action): ?StateValues
     {
         return $this->stateHandlerManager->handle($providerState->state, $action, $providerState->params);
     }

@@ -1,8 +1,8 @@
 <?php
 
-namespace Tienvx\PactProviderPackage\StateHandler;
+namespace Tienvx\PactProvider\StateHandler;
 
-use Tienvx\PactProviderPackage\Model\StateValues;
+use Tienvx\PactProvider\Model\StateValues;
 
 interface SetUpInterface
 {

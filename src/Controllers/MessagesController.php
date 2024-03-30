@@ -1,13 +1,16 @@
 <?php
 
-namespace Tienvx\PactProviderPackage\Controllers;
+namespace Tienvx\PactProvider\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Tienvx\PactProviderPackage\Model\Message;
-use Tienvx\PactProviderPackage\Model\ProviderState;
-use Tienvx\PactProviderPackage\Service\MessageDispatcherManagerInterface;
-use Tienvx\PactProviderPackage\Service\StateHandlerManagerInterface;
+use Illuminate\Support\Facades\Validator;
+use Tienvx\PactProvider\Enum\Action;
+use Tienvx\PactProvider\Model\Message;
+use Tienvx\PactProvider\Model\ProviderState;
+use Tienvx\PactProvider\Service\MessageDispatcherManagerInterface;
+use Tienvx\PactProvider\Service\StateHandlerManagerInterface;
 
 class MessagesController
 {
@@ -17,11 +20,26 @@ class MessagesController
     ) {
     }
 
-    public function handle(Request $request): ?Response
+    public function handle(Request $request): Response|JsonResponse|null
     {
-        $providerStates = $this->getProviderStates($request);
+        $validation = Validator::make($request->request->all(), [
+            'description' => 'required|string',
+            'providerStates' => 'required|array',
+            'providerStates.*.name' => 'required|string',
+            'providerStates.*.params' => 'array',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => $validation->errors(),
+            ], 400);
+        }
+        $validated = $validation->validated();
+
+        $providerStates = $this->getProviderStates($validated);
         $this->handleProviderStates($providerStates, Action::SETUP);
-        $message = $this->dispatchMessage($request);
+        $message = $this->dispatchMessage($validated);
         $this->handleProviderStates($providerStates, Action::TEARDOWN);
 
         if ($message) {
@@ -37,49 +55,28 @@ class MessagesController
     /**
      * @return ProviderState[]
      */
-    private function getProviderStates(Request $request): array
+    private function getProviderStates(array $validated): array
     {
-        $providerStates = $request->toArray()['providerStates'] ?? [];
-        if (!is_array($providerStates) || empty($providerStates)) {
-            throw new BadRequestException("'providerStates' is missing or invalid in messages request.");
-        }
+        $providerStates = $validated['providerStates'] ?? [];
 
-        return array_map(function (array $providerState): ProviderState {
-            $name = $providerState['name'] ?? null;
-            if (!is_string($name)) {
-                throw new BadRequestException("Missing 'name' for provider state.");
-            }
-            $params = $providerState['params'] ?? [];
-            if (!is_array($params)) {
-                throw new BadRequestException(sprintf("Invalid 'params' for provider state '%s'.", $name));
-            }
-
-            return new ProviderState($name, $params);
-        }, $providerStates);
-    }
-
-    private function getDescription(Request $request): string
-    {
-        $description = $request->toArray()['description'] ?? null;
-        if (!is_string($description)) {
-            throw new BadRequestException("'description' is missing or invalid in messages request.");
-        }
-
-        return $description;
+        return array_map(
+            fn(array $providerState) => new ProviderState($providerState['name'], $providerState['params'] ?? []),
+            $providerStates
+        );
     }
 
     /**
      * @param ProviderState[] $providerStates
      */
-    private function handleProviderStates(array $providerStates, string $action): void
+    private function handleProviderStates(array $providerStates, Action $action): void
     {
         foreach ($providerStates as $providerState) {
             $this->stateHandlerManager->handle($providerState->state, $action, $providerState->params);
         }
     }
 
-    private function dispatchMessage(Request $request): ?Message
+    private function dispatchMessage(array $validated): ?Message
     {
-        return $this->messageDispatcherManager->dispatch($this->getDescription($request));
+        return $this->messageDispatcherManager->dispatch($validated['description']);
     }
 }

@@ -20,9 +20,9 @@ composer require tienvx/pact-provider-package
 
 namespace App\StateHandler;
 
-use Tienvx\PactProviderPackage\StateHandler\HandlerInterface;
-use Tienvx\PactProviderPackage\StateHandler\SetUpInterface;
-use Tienvx\PactProviderPackage\StateHandler\TearDownInterface;
+use Tienvx\PactProvider\StateHandler\HandlerInterface;
+use Tienvx\PactProvider\StateHandler\SetUpInterface;
+use Tienvx\PactProvider\StateHandler\TearDownInterface;
 
 class UserHandler implements HandlerInterface, SetUpInterface, TearDownInterface
 {
@@ -53,8 +53,8 @@ app()->tag(UserHandler::class, 'pact_provider.state_handler');
 
 namespace App\MessageDispatcher;
 
-use Tienvx\PactProviderPackage\Model\Message;
-use Tienvx\PactProviderPackage\MessageDispatcher\DispatcherInterface;
+use Tienvx\PactProvider\Model\Message;
+use Tienvx\PactProvider\MessageDispatcher\DispatcherInterface;
 
 class UserDispatcher implements DispatcherInterface
 {

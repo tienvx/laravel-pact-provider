@@ -1,8 +1,8 @@
 <?php
 
-namespace Tienvx\PactProviderPackage\MessageDispatcher;
+namespace Tienvx\PactProvider\MessageDispatcher;
 
-use Tienvx\PactProviderPackage\Model\Message;
+use Tienvx\PactProvider\Model\Message;
 
 interface DispatcherInterface
 {

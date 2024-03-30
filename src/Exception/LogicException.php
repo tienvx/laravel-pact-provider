@@ -1,6 +1,6 @@
 <?php
 
-namespace Tienvx\PactProviderPackage\Exception;
+namespace Tienvx\PactProvider\Exception;
 
 class LogicException extends \LogicException
 {

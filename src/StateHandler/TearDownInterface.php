@@ -1,6 +1,6 @@
 <?php
 
-namespace Tienvx\PactProviderPackage\StateHandler;
+namespace Tienvx\PactProvider\StateHandler;
 
 interface TearDownInterface
 {
