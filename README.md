@@ -9,7 +9,7 @@ It support:
 ## Installation
 
 ```shell
-composer require tienvx/pact-provider-package
+composer require tienvx/laravel-pact-provider
 ```
 
 ## Documentation
@@ -77,18 +77,18 @@ app()->tag(UserDispatcher::class, 'pact_provider.message_dispatcher');
 
 ## License
 
-[MIT](https://github.com/tienvx/pact-provider-package/blob/main/LICENSE)
+[MIT](https://github.com/tienvx/laravel-pact-provider/blob/main/LICENSE)
 
-[actions_badge]: https://github.com/tienvx/pact-provider-package/workflows/main/badge.svg
-[actions_link]: https://github.com/tienvx/pact-provider-package/actions
+[actions_badge]: https://github.com/tienvx/laravel-pact-provider/workflows/main/badge.svg
+[actions_link]: https://github.com/tienvx/laravel-pact-provider/actions
 
-[coveralls_badge]: https://coveralls.io/repos/tienvx/pact-provider-package/badge.svg?branch=main&service=github
-[coveralls_link]: https://coveralls.io/github/tienvx/pact-provider-package?branch=main
+[coveralls_badge]: https://coveralls.io/repos/tienvx/laravel-pact-provider/badge.svg?branch=main&service=github
+[coveralls_link]: https://coveralls.io/github/tienvx/laravel-pact-provider?branch=main
 
-[version-url]: https://packagist.org/packages/tienvx/pact-provider-package
-[version-image]: http://img.shields.io/packagist/v/tienvx/pact-provider-package.svg?style=flat
+[version-url]: https://packagist.org/packages/tienvx/laravel-pact-provider
+[version-image]: http://img.shields.io/packagist/v/tienvx/laravel-pact-provider.svg?style=flat
 
-[php-version-url]: https://packagist.org/packages/tienvx/pact-provider-package
-[php-version-image]: http://img.shields.io/badge/php-8.0.0+-ff69b4.svg
+[php-version-url]: https://packagist.org/packages/tienvx/laravel-pact-provider
+[php-version-image]: http://img.shields.io/badge/php-8.1.0+-ff69b4.svg
 
 [pact-php]: https://github.com/pact-foundation/pact-php
