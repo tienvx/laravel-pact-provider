@@ -1,30 +1,15 @@
 <?php
 
-namespace Barryvdh\Debugbar;
+namespace Tienvx\PactProvider;
 
-use Laravel\Lumen\Application;
+use Tienvx\PactProvider\Controllers\MessagesController;
+use Tienvx\PactProvider\Controllers\StateChangeController;
+use Tienvx\PactProvider\Service\MessageDispatcherManagerInterface;
+use Tienvx\PactProvider\Service\StateHandlerManagerInterface;
 
 class LumenServiceProvider extends ServiceProvider
 {
-    /** @var  Application */
-    protected $app;
-
-    /**
-     * Get the active router.
-     *
-     * @return Application
-     */
-    protected function getRouter()
-    {
-        return $this->app->router;
-    }
-
-    /**
-     * Get the config path
-     *
-     * @return string
-     */
-    protected function getConfigPath()
+    protected function getConfigPath(): string
     {
         return base_path('config/pact_provider.php');
     }
@@ -34,7 +19,7 @@ class LumenServiceProvider extends ServiceProvider
      *
      * @return array
      */
-    public function provides()
+    public function provides(): array
     {
         return [
             StateHandlerManagerInterface::class,

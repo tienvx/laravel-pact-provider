@@ -7,33 +7,28 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-versions: ['8.0', '8.1', '8.2']
-        dependency-versions: ['lowest', 'highest']
-    name: PHP ${{ matrix.php-versions }} with ${{ matrix.dependency-versions }} versions of Composer dependencies
+        php: ['8.1', '8.2', '8.3']
+        dependencies: ['lowest', 'highest']
     steps:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: ${{ matrix.php-versions }}
-        tools: phpstan, phpcs
+        php-version: ${{ matrix.php }}
         coverage: pcov
 
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Install
-      uses: "ramsey/composer-install@v2"
+      uses: ramsey/composer-install@v3
       with:
-        dependency-versions: ${{ matrix.dependency-versions }}
+        dependency-versions: ${{ matrix.dependencies }}
 
-    - name: Run PHP CS
-      run: phpcs -p --standard=PSR12 config/ src/ tests/
+    - name: Check Code Styles
+      run: composer check-style
 
-    - name: Run PHPStan
-      run: phpstan
-
-    - name: Test & Generate Code Coverage
-      run: ./vendor/bin/phpunit
+    - name: Test
+      run: composer test
 
     - name: Upload coverage results to Coveralls
       env:
@@ -41,4 +36,4 @@ jobs:
       run: |
         composer global require php-coveralls/php-coveralls
         php-coveralls --coverage_clover=clover.xml -v
-      if: matrix.php-versions == '8.0'
+      if: ${{ github.event_name == 'push' && matrix.php == '8.1' && matrix.dependencies == 'highest' }}

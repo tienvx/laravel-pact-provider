@@ -1,20 +1,34 @@
 <?php
 
-namespace Tienvx\PactProviderPackage\Service;
+namespace Tienvx\PactProvider\Service;
 
-use Tienvx\PactProviderPackage\MessageDispatcher\DispatcherInterface;
-use Tienvx\PactProviderPackage\Model\Message;
+use Tienvx\PactProvider\Exception\NoDispatcherForMessageException;
+use Tienvx\PactProvider\Exception\LogicException;
+use Tienvx\PactProvider\MessageDispatcher\DispatcherInterface;
+use Tienvx\PactProvider\Model\Message;
+use Traversable;
 
 class MessageDispatcherManager implements MessageDispatcherManagerInterface
 {
+    public function __construct(private array | Traversable $dispatchers)
+    {
+    }
+
     public function dispatch(string $description): ?Message
     {
-        foreach (app()->tagged('pact_provider.message_dispatcher') as $dispatcher) {
-            if ($dispatcher instanceof DispatcherInterface && $dispatcher->support($description)) {
+        foreach ($this->dispatchers as $dispatcher) {
+            if (!$dispatcher instanceof DispatcherInterface) {
+                throw new LogicException(sprintf(
+                    'Dispatcher "%s" must implement "%s".',
+                    get_debug_type($dispatcher),
+                    DispatcherInterface::class
+                ));
+            }
+            if ($dispatcher->support($description)) {
                 return $dispatcher->dispatch();
             }
         }
 
-        return null;
+        throw new NoDispatcherForMessageException(sprintf("No dispatcher for description '%s'.", $description));
     }
 }
