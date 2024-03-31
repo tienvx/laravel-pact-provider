@@ -12,7 +12,7 @@ class MessagesControllerTest extends PactProviderTestCase
         $crawler = $this->post('/pact-messages-not-found');
 
         $this->assertStringContainsString('Not Found', $crawler->content());
-        $this->assertEquals(404, $crawler->getStatusCode());
+        $crawler->assertStatus(404);
     }
 
     public function testWrongMethod(): void
@@ -23,7 +23,7 @@ class MessagesControllerTest extends PactProviderTestCase
             'The GET method is not supported for route pact-messages. Supported methods: POST',
             $crawler->content()
         );
-        $this->assertEquals(405, $crawler->getStatusCode());
+        $crawler->assertStatus(405);
     }
 
     public function testRequestBodyIsEmpty(): void
@@ -37,7 +37,7 @@ class MessagesControllerTest extends PactProviderTestCase
                 'providerStates' => ['The provider states field is required.'],
             ],
         ]), $crawler->content());
-        $this->assertEquals(400, $crawler->getStatusCode());
+        $crawler->assertStatus(400);
     }
 
     #[TestWith([null])]
@@ -55,7 +55,7 @@ class MessagesControllerTest extends PactProviderTestCase
                 'providerStates' => ['The provider states field is required.'],
             ],
         ]), $crawler->content());
-        $this->assertEquals(400, $crawler->getStatusCode());
+        $crawler->assertStatus(400);
     }
 
     public function testInvalidProviderStates(): void
@@ -71,7 +71,7 @@ class MessagesControllerTest extends PactProviderTestCase
                 'providerStates' => ['The provider states field must be an array.'],
             ],
         ]), $crawler->content());
-        $this->assertEquals(400, $crawler->getStatusCode());
+        $crawler->assertStatus(400);
     }
 
     public function testMissingProviderStateName(): void
@@ -93,7 +93,7 @@ class MessagesControllerTest extends PactProviderTestCase
                 'providerStates.0.name' => ['The providerStates.0.name field is required.'],
             ],
         ]), $crawler->content());
-        $this->assertEquals(400, $crawler->getStatusCode());
+        $crawler->assertStatus(400);
     }
 
     public function testInvalidProviderStateName(): void
@@ -116,7 +116,7 @@ class MessagesControllerTest extends PactProviderTestCase
                 'providerStates.0.name' => ['The providerStates.0.name field must be a string.'],
             ],
         ]), $crawler->content());
-        $this->assertEquals(400, $crawler->getStatusCode());
+        $crawler->assertStatus(400);
     }
 
     public function testInvalidProviderStateParams(): void
@@ -137,7 +137,7 @@ class MessagesControllerTest extends PactProviderTestCase
                 'providerStates.0.params' => ['The providerStates.0.params field must be an array.'],
             ],
         ]), $crawler->content());
-        $this->assertEquals(400, $crawler->getStatusCode());
+        $crawler->assertStatus(400);
     }
 
     public function testMissingDescription(): void
@@ -159,7 +159,7 @@ class MessagesControllerTest extends PactProviderTestCase
                 'description' => ['The description field is required.'],
             ],
         ]), $crawler->content());
-        $this->assertEquals(400, $crawler->getStatusCode());
+        $crawler->assertStatus(400);
     }
 
     public function testNoMessage(): void
@@ -176,8 +176,8 @@ class MessagesControllerTest extends PactProviderTestCase
             ],
         ]);
 
-        $this->assertSame('', $crawler->content());
-        $this->assertEquals(200, $crawler->getStatusCode());
+        $crawler->assertContent('');
+        $crawler->assertStatus(200);
     }
 
     public function testHasMessage(): void
@@ -194,8 +194,8 @@ class MessagesControllerTest extends PactProviderTestCase
             ],
         ]);
 
-        $this->assertSame('message content', $crawler->content());
-        $this->assertEquals(200, $crawler->getStatusCode());
+        $crawler->assertContent('message content');
+        $crawler->assertStatus(200);
         $crawler->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
         $crawler->assertHeader('Pact-Message-Metadata', 'eyJrZXkiOiJ2YWx1ZSIsImNvbnRlbnRUeXBlIjoidGV4dFwvcGxhaW4ifQ==');
     }
