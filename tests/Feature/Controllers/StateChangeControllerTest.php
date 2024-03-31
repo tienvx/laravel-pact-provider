@@ -13,7 +13,7 @@ class StateChangeControllerTest extends PactProviderTestCase
         $crawler = $this->post('/pact-change-state-not-found');
 
         $this->assertStringContainsString('Not Found', $crawler->content());
-        $this->assertEquals(404, $crawler->getStatusCode());
+        $crawler->assertStatus(404);
     }
 
     public function testWrongMethod(): void
@@ -24,7 +24,7 @@ class StateChangeControllerTest extends PactProviderTestCase
             'The GET method is not supported for route pact-change-state. Supported methods: POST',
             $crawler->content()
         );
-        $this->assertEquals(405, $crawler->getStatusCode());
+        $crawler->assertStatus(405);
     }
 
     public function testRequestBodyIsEmpty(): void
@@ -38,7 +38,7 @@ class StateChangeControllerTest extends PactProviderTestCase
                 'state' => ['The state field is required.'],
             ],
         ]), $crawler->content());
-        $this->assertEquals(400, $crawler->getStatusCode());
+        $crawler->assertStatus(400);
     }
 
     public function testMissingProviderStateNameInBody(): void
@@ -56,7 +56,7 @@ class StateChangeControllerTest extends PactProviderTestCase
                 'state' => ['The state field is required.'],
             ],
         ]), $crawler->content());
-        $this->assertEquals(400, $crawler->getStatusCode());
+        $crawler->assertStatus(400);
     }
 
     public function testInvalidProviderStateNameInBody(): void
@@ -75,7 +75,7 @@ class StateChangeControllerTest extends PactProviderTestCase
                 'state' => ['The state field must be a string.'],
             ],
         ]), $crawler->content());
-        $this->assertEquals(400, $crawler->getStatusCode());
+        $crawler->assertStatus(400);
     }
 
     public function testInvalidProviderStateParamsInBody(): void
@@ -92,7 +92,7 @@ class StateChangeControllerTest extends PactProviderTestCase
                 'params' => ['The params field must be an array.'],
             ],
         ]), $crawler->content());
-        $this->assertEquals(400, $crawler->getStatusCode());
+        $crawler->assertStatus(400);
     }
 
     public function testMissingProviderStateActionInBody(): void
@@ -110,7 +110,7 @@ class StateChangeControllerTest extends PactProviderTestCase
                 'action' => ['The action field is required.'],
             ],
         ]), $crawler->content());
-        $this->assertEquals(400, $crawler->getStatusCode());
+        $crawler->assertStatus(400);
     }
 
     public function testInvalidProviderStateActionInBody(): void
@@ -129,7 +129,7 @@ class StateChangeControllerTest extends PactProviderTestCase
                 'action' => ['The selected action is invalid.'],
             ],
         ]), $crawler->content());
-        $this->assertEquals(400, $crawler->getStatusCode());
+        $crawler->assertStatus(400);
     }
 
     #[TestWith([Action::SETUP])]
@@ -144,8 +144,7 @@ class StateChangeControllerTest extends PactProviderTestCase
             'action' => $action->value,
         ]);
 
-        $this->assertEmpty($crawler->content());
-        $this->assertEquals(204, $crawler->getStatusCode());
+        $crawler->assertNoContent();
     }
 
     public function testHasValuesStateInBody(): void
@@ -161,7 +160,7 @@ class StateChangeControllerTest extends PactProviderTestCase
         $this->assertJsonStringEqualsJsonString(json_encode([
             'id' => 123,
         ]), $crawler->content());
-        $this->assertEquals(200, $crawler->getStatusCode());
+        $crawler->assertStatus(200);
         $crawler->assertHeader('Content-Type', 'application/json');
     }
 
@@ -246,8 +245,7 @@ class StateChangeControllerTest extends PactProviderTestCase
             'action' => $action->value,
         ]));
 
-        $this->assertEmpty($crawler->content());
-        $this->assertEquals(204, $crawler->getStatusCode());
+        $crawler->assertNoContent();
     }
 
     public function testHasValuesStateInQuery(): void
@@ -262,7 +260,7 @@ class StateChangeControllerTest extends PactProviderTestCase
         $this->assertJsonStringEqualsJsonString(json_encode([
             'id' => 123,
         ]), $crawler->content());
-        $this->assertEquals(200, $crawler->getStatusCode());
+        $crawler->assertStatus(200);
         $crawler->assertHeader('Content-Type', 'application/json');
     }
 }
