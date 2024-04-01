@@ -13,7 +13,6 @@ use Tienvx\PactProvider\Controllers\MessagesController;
 use Tienvx\PactProvider\Controllers\StateChangeController;
 use Tienvx\PactProvider\Listeners\EventCollector;
 use Tienvx\PactProvider\Listeners\EventCollectorInterface;
-use Tienvx\PactProvider\MessageDispatcher\DispatcherInterface;
 use Tienvx\PactProvider\Service\MessageDispatcherManager;
 use Tienvx\PactProvider\Service\MessageDispatcherManagerInterface;
 use Tienvx\PactProvider\Service\StateHandlerManager;
@@ -89,11 +88,11 @@ class ServiceProvider extends BaseServiceProvider
                 continue;
             }
 
-            if ($this->hasAsMessageDispatcherAttribute($concrete)) {
+            if ($this->hasAttribute($concrete, AsMessageDispatcher::class)) {
                 app()->tag($abstract, 'pact_provider.message_dispatcher');
             }
 
-            if ($this->hasAsStateHandlerAttribute($concrete)) {
+            if ($this->hasAttribute($concrete, AsStateHandler::class)) {
                 app()->tag($abstract, 'pact_provider.state_handler');
             }
         }
@@ -104,17 +103,10 @@ class ServiceProvider extends BaseServiceProvider
         return $app->getAlias($abstract) ?: $abstract;
     }
 
-    protected function hasAsMessageDispatcherAttribute(string $class): bool
+    protected function hasAttribute(string $className, string $attribute): bool
     {
-        $reflection = new ReflectionClass($class);
+        $reflection = new ReflectionClass($className);
 
-        return count($reflection->getAttributes(AsMessageDispatcher::class)) > 0;
-    }
-
-    protected function hasAsStateHandlerAttribute(string $class): bool
-    {
-        $reflection = new ReflectionClass($class);
-
-        return count($reflection->getAttributes(AsStateHandler::class)) > 0;
+        return count($reflection->getAttributes($attribute)) > 0;
     }
 }
