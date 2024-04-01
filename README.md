@@ -20,6 +20,7 @@ composer require tienvx/laravel-pact-provider
 
 namespace App\StateHandler;
 
+use Tienvx\Bundle\PactProviderBundle\Model\StateValues;
 use Tienvx\PactProvider\StateHandler\HandlerInterface;
 use Tienvx\PactProvider\StateHandler\SetUpInterface;
 use Tienvx\PactProvider\StateHandler\TearDownInterface;
@@ -31,8 +32,11 @@ class UserHandler implements HandlerInterface, SetUpInterface, TearDownInterface
         return $state === 'A user with id dcd79453-7346-4423-ae6e-127c60d8dd20 exists';
     }
 
-    public function setUp(array $params): void
+    public function setUp(array $params): ?StateValues
     {
+        return new StateValues([
+            'id' => 123,
+        ]);
     }
 
     public function tearDown(array $params): void
@@ -63,7 +67,7 @@ class UserDispatcher implements DispatcherInterface
         return $description === 'User created message';
     }
 
-    public function dispatch(): Message
+    public function dispatch(): ?Message
     {
     }
 }
