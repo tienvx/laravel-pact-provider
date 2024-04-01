@@ -3,9 +3,12 @@
 namespace Tienvx\PactProvider;
 
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use Tienvx\PactProvider\Controllers\MessagesController;
 use Tienvx\PactProvider\Controllers\StateChangeController;
+use Tienvx\PactProvider\Listeners\EventCollector;
+use Tienvx\PactProvider\Listeners\EventCollectorInterface;
 use Tienvx\PactProvider\Service\MessageDispatcherManager;
 use Tienvx\PactProvider\Service\MessageDispatcherManagerInterface;
 use Tienvx\PactProvider\Service\StateHandlerManager;
@@ -20,6 +23,11 @@ class ServiceProvider extends BaseServiceProvider
 
         $this->app->bind(StateHandlerManagerInterface::class, StateHandlerManager::class);
         $this->app->bind(MessageDispatcherManagerInterface::class, MessageDispatcherManager::class);
+        $this->app->bind(EventCollectorInterface::class, EventCollector::class);
+
+        $this->app->singleton(EventCollector::class, function ($app) {
+            return new EventCollector();
+        });
 
         $this->app->bind(StateChangeController::class, function (Application $app) {
             return new StateChangeController(
@@ -50,6 +58,11 @@ class ServiceProvider extends BaseServiceProvider
         $this->publishes([$configPath => $this->getConfigPath()], 'config');
 
         $this->loadRoutesFrom(realpath(__DIR__ . '/../routes/routes.php'));
+
+        Event::listen('*', function (string $eventName, array $data) {
+            $collector = app(EventCollectorInterface::class);
+            $collector->collect($eventName, $data);
+        });
     }
 
     protected function getConfigPath(): string

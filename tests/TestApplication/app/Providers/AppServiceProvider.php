@@ -26,6 +26,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->loadRoutesFrom(realpath(__DIR__ . '/../../routes/user.php'));
     }
 }
