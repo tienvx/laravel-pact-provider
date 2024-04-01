@@ -6,6 +6,7 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
+use ReflectionAttribute;
 use ReflectionClass;
 use Tienvx\PactProvider\Attribute\AsMessageDispatcher;
 use Tienvx\PactProvider\Attribute\AsStateHandler;
@@ -47,12 +48,12 @@ class ServiceProvider extends BaseServiceProvider
             );
         });
 
-        $this->app->bind(MessageDispatcherManager::class, function (Application $app) {
-            return new MessageDispatcherManager($app->tagged('pact_provider.message_dispatcher'));
+        $this->app->bind(MessageDispatcherManager::class, function () {
+            return new MessageDispatcherManager($this->getMessageDispatchersMapByDescription());
         });
 
         $this->app->bind(StateHandlerManager::class, function (Application $app) {
-            return new StateHandlerManager($app->tagged('pact_provider.state_handler'));
+            return new StateHandlerManager($this->getStateHandlersMapByState());
         });
 
         $this->app->booted(function (Container $app) {
@@ -103,10 +104,46 @@ class ServiceProvider extends BaseServiceProvider
         return $app->getAlias($abstract) ?: $abstract;
     }
 
-    protected function hasAttribute(string $className, string $attribute): bool
+    private function hasAttribute(string $className, string $attribute): bool
     {
         $reflection = new ReflectionClass($className);
 
         return count($reflection->getAttributes($attribute)) > 0;
+    }
+
+    private function getMessageDispatchersMapByDescription(): array
+    {
+        $dispatchers = [];
+        foreach ($this->app->tagged('pact_provider.message_dispatcher') as $dispatcher) {
+            $reflection = new ReflectionClass($dispatcher);
+            $attributes = $reflection->getAttributes(AsMessageDispatcher::class);
+
+            array_walk(
+                $attributes,
+                function (ReflectionAttribute $attribute) use (&$dispatchers, $dispatcher) {
+                    $dispatchers[$attribute->newInstance()->description] = $dispatcher;
+                }
+            );
+        }
+
+        return $dispatchers;
+    }
+
+    private function getStateHandlersMapByState(): array
+    {
+        $handlers = [];
+        foreach ($this->app->tagged('pact_provider.state_handler') as $handler) {
+            $reflection = new ReflectionClass($handler);
+            $attributes = $reflection->getAttributes(AsStateHandler::class);
+
+            array_walk(
+                $attributes,
+                function (ReflectionAttribute $attribute) use (&$handlers, $handler) {
+                    $handlers[$attribute->newInstance()->state] = $handler;
+                }
+            );
+        }
+
+        return $handlers;
     }
 }
