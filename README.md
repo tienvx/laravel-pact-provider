@@ -20,18 +20,14 @@ composer require tienvx/laravel-pact-provider
 
 namespace App\StateHandler;
 
-use Tienvx\Bundle\PactProviderBundle\Model\StateValues;
-use Tienvx\PactProvider\StateHandler\HandlerInterface;
+use Tienvx\PactProvider\Attribute\AsStateHandler;
+use Tienvx\PactProvider\Model\StateValues;
 use Tienvx\PactProvider\StateHandler\SetUpInterface;
 use Tienvx\PactProvider\StateHandler\TearDownInterface;
 
-class UserHandler implements HandlerInterface, SetUpInterface, TearDownInterface
+#[AsStateHandler(state: 'A user with id dcd79453-7346-4423-ae6e-127c60d8dd20 exists')]
+class UserHandler implements SetUpInterface, TearDownInterface
 {
-    public function support(string $state): bool
-    {
-        return $state === 'A user with id dcd79453-7346-4423-ae6e-127c60d8dd20 exists';
-    }
-
     public function setUp(array $params): ?StateValues
     {
         return new StateValues([
@@ -45,38 +41,23 @@ class UserHandler implements HandlerInterface, SetUpInterface, TearDownInterface
 }
 ```
 
-```php
-use App\StateHandler\UserHandler;
-
-app()->tag(UserHandler::class, 'pact_provider.state_handler');
-```
-
 ### Register Message Dispatcher
 
 ```php
 
 namespace App\MessageDispatcher;
 
+use Tienvx\PactProvider\Attribute\AsMessageDispatcher;
 use Tienvx\PactProvider\Model\Message;
 use Tienvx\PactProvider\MessageDispatcher\DispatcherInterface;
 
+#[AsMessageDispatcher(description: 'User created message')]
 class UserDispatcher implements DispatcherInterface
 {
-    public function support(string $description): bool
-    {
-        return $description === 'User created message';
-    }
-
     public function dispatch(): ?Message
     {
     }
 }
-```
-
-```php
-use App\MessageDispatcher\UserDispatcher;
-
-app()->tag(UserDispatcher::class, 'pact_provider.message_dispatcher');
 ```
 
 ## License

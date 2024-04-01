@@ -2,11 +2,13 @@
 
 namespace Tienvx\PactProvider\Service;
 
+use ReflectionAttribute;
+use ReflectionClass;
+use Tienvx\PactProvider\Attribute\AsStateHandler;
 use Tienvx\PactProvider\Exception\NoHandlerForStateException;
 use Tienvx\PactProvider\Enum\Action;
 use Tienvx\PactProvider\Exception\LogicException;
 use Tienvx\PactProvider\Model\StateValues;
-use Tienvx\PactProvider\StateHandler\HandlerInterface;
 use Tienvx\PactProvider\StateHandler\SetUpInterface;
 use Tienvx\PactProvider\StateHandler\TearDownInterface;
 use Traversable;
@@ -20,14 +22,7 @@ class StateHandlerManager implements StateHandlerManagerInterface
     public function handle(string $state, Action $action, array $params): ?StateValues
     {
         foreach ($this->handlers as $handler) {
-            if (!$handler instanceof HandlerInterface) {
-                throw new LogicException(sprintf(
-                    'Handler "%s" must implement "%s".',
-                    get_debug_type($handler),
-                    HandlerInterface::class
-                ));
-            }
-            if (!$handler->support($state)) {
+            if (!$this->support($handler, $state)) {
                 continue;
             }
             switch ($action) {
@@ -60,5 +55,16 @@ class StateHandlerManager implements StateHandlerManagerInterface
         }
 
         throw new NoHandlerForStateException(sprintf("No handler for state '%s'.", $state));
+    }
+
+    private function support(SetUpInterface|TearDownInterface $handler, string $state): bool
+    {
+        $reflection = new ReflectionClass($handler::class);
+        $attributes = $reflection->getAttributes(AsStateHandler::class);
+
+        return count(array_filter(
+            $attributes,
+            fn (ReflectionAttribute $attribute) => $attribute->newInstance()->state === $state
+        )) > 0;
     }
 }
