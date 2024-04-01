@@ -21,6 +21,8 @@ List of tasks to outline what needs to be done
         - [ ] `StateHandlerManagerInterface`
         - [ ] `MessageDispatcherManagerInterface`
 
+- [ ] Auto binding state handlers & message dispatchers
+
 ### Completed ✓
 - [x] Update PHP to 8.1
 - [x] Update Laravel to 10

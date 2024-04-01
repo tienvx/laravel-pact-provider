@@ -41,6 +41,10 @@ class UserHandler implements SetUpInterface, TearDownInterface
 }
 ```
 
+```php
+app()->bind(UserHandler::class);
+```
+
 ### Register Message Dispatcher
 
 ```php
@@ -58,6 +62,10 @@ class UserDispatcher implements DispatcherInterface
     {
     }
 }
+```
+
+```php
+app()->bind(UserDispatcher::class);
 ```
 
 ## License
