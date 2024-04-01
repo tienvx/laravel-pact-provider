@@ -9,11 +9,6 @@ use Tienvx\PactProvider\Model\Message;
 #[AsMessageDispatcher(description: 'has message')]
 class HasMessageDispatcher implements DispatcherInterface
 {
-    public function support(string $description): bool
-    {
-        return $description === 'has message';
-    }
-
     public function dispatch(): ?Message
     {
         return new Message(

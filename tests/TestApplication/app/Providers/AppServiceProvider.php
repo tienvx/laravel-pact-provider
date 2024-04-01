@@ -15,10 +15,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        app()->tag(NoValuesHandler::class, 'pact_provider.state_handler');
-        app()->tag(HasValuesHandler::class, 'pact_provider.state_handler');
-        app()->tag(HasMessageDispatcher::class, 'pact_provider.message_dispatcher');
-        app()->tag(NoMessageDispatcher::class, 'pact_provider.message_dispatcher');
+        app()->bind(NoValuesHandler::class);
+        app()->bind(HasValuesHandler::class);
+        app()->bind(HasMessageDispatcher::class);
+        app()->bind(NoMessageDispatcher::class);
     }
 
     /**

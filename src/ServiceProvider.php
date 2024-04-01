@@ -2,13 +2,18 @@
 
 namespace Tienvx\PactProvider;
 
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
+use ReflectionClass;
+use Tienvx\PactProvider\Attribute\AsMessageDispatcher;
+use Tienvx\PactProvider\Attribute\AsStateHandler;
 use Tienvx\PactProvider\Controllers\MessagesController;
 use Tienvx\PactProvider\Controllers\StateChangeController;
 use Tienvx\PactProvider\Listeners\EventCollector;
 use Tienvx\PactProvider\Listeners\EventCollectorInterface;
+use Tienvx\PactProvider\MessageDispatcher\DispatcherInterface;
 use Tienvx\PactProvider\Service\MessageDispatcherManager;
 use Tienvx\PactProvider\Service\MessageDispatcherManagerInterface;
 use Tienvx\PactProvider\Service\StateHandlerManager;
@@ -50,6 +55,10 @@ class ServiceProvider extends BaseServiceProvider
         $this->app->bind(StateHandlerManager::class, function (Application $app) {
             return new StateHandlerManager($app->tagged('pact_provider.state_handler'));
         });
+
+        $this->app->booted(function (Container $app) {
+            $this->autoTagServices($app);
+        });
     }
 
     public function boot(): void
@@ -68,5 +77,44 @@ class ServiceProvider extends BaseServiceProvider
     protected function getConfigPath(): string
     {
         return config_path('pact_provider.php');
+    }
+
+    private function autoTagServices(Container $app): void
+    {
+        $services = $app->getBindings();
+
+        foreach ($services as $abstract => $closure) {
+            $concrete = $this->getConcrete($app, $abstract);
+            if (!class_exists($concrete)) {
+                continue;
+            }
+
+            if ($this->hasAsMessageDispatcherAttribute($concrete)) {
+                app()->tag($abstract, 'pact_provider.message_dispatcher');
+            }
+
+            if ($this->hasAsStateHandlerAttribute($concrete)) {
+                app()->tag($abstract, 'pact_provider.state_handler');
+            }
+        }
+    }
+
+    private function getConcrete(Container $app, string $abstract): string
+    {
+        return $app->getAlias($abstract) ?: $abstract;
+    }
+
+    protected function hasAsMessageDispatcherAttribute(string $class): bool
+    {
+        $reflection = new ReflectionClass($class);
+
+        return count($reflection->getAttributes(AsMessageDispatcher::class)) > 0;
+    }
+
+    protected function hasAsStateHandlerAttribute(string $class): bool
+    {
+        $reflection = new ReflectionClass($class);
+
+        return count($reflection->getAttributes(AsStateHandler::class)) > 0;
     }
 }

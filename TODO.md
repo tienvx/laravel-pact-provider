@@ -3,10 +3,6 @@
 List of tasks to outline what needs to be done
 
 ### Plan
-- [ ] Create attributes
-    - [ ] `AsMessageDispatcher`
-    - [ ] `AsStateHandler`
-
 - [ ] Create new library for reusing code
     - [ ] Enum
         - [ ] `Action`
@@ -29,3 +25,6 @@ List of tasks to outline what needs to be done
 - [x] Update PHP to 8.1
 - [x] Update Laravel to 10
 - [x] Update PHPUnit to 10.1
+- [x] Create attributes
+    - [x] `AsMessageDispatcher`
+    - [x] `AsStateHandler`

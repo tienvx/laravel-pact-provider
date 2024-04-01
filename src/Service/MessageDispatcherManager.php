@@ -2,6 +2,9 @@
 
 namespace Tienvx\PactProvider\Service;
 
+use ReflectionAttribute;
+use ReflectionClass;
+use Tienvx\PactProvider\Attribute\AsMessageDispatcher;
 use Tienvx\PactProvider\Exception\NoDispatcherForMessageException;
 use Tienvx\PactProvider\Exception\LogicException;
 use Tienvx\PactProvider\MessageDispatcher\DispatcherInterface;
@@ -24,11 +27,22 @@ class MessageDispatcherManager implements MessageDispatcherManagerInterface
                     DispatcherInterface::class
                 ));
             }
-            if ($dispatcher->support($description)) {
+            if ($this->support($dispatcher, $description)) {
                 return $dispatcher->dispatch();
             }
         }
 
         throw new NoDispatcherForMessageException(sprintf("No dispatcher for description '%s'.", $description));
+    }
+
+    private function support(DispatcherInterface $dispatcher, string $description): bool
+    {
+        $reflection = new ReflectionClass($dispatcher::class);
+        $attributes = $reflection->getAttributes(AsMessageDispatcher::class);
+
+        return count(array_filter(
+            $attributes,
+            fn (ReflectionAttribute $attribute) => $attribute->newInstance()->description === $description
+        )) > 0;
     }
 }
